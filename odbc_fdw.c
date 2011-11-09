@@ -566,7 +566,11 @@ odbcGetTableSize(char *svr_dsn, char *svr_database, char *svr_schema, char *svr_
     }
     else
     {
-        elog(NOTICE, "Opps!");
+#ifdef DEBUG
+        extract_error("SQLExecDirect", dbc, SQL_HANDLE_STMT);
+#else
+        elog(ERROR, "Could not retrieve table size");
+#endif
     }
 
     /* Free handles, and disconnect */
