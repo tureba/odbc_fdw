@@ -33,7 +33,7 @@
 #include "foreign/foreign.h"
 #include "utils/memutils.h"
 #include "utils/builtins.h"
-#include "utils/relcache.h"
+#include "utils/rel.h"
 #include "storage/lock.h"
 #include "miscadmin.h"
 
