@@ -53,6 +53,7 @@ typedef struct odbcFdwExecutionState
     char			*svr_username;
     char			*svr_password;
     SQLHSTMT		stmt;
+    SQLHDBC			dbc;
     int				num_of_result_cols;
     int				num_of_table_cols;
     StringInfoData	*table_columns;
@@ -577,6 +578,7 @@ odbcGetTableSize(char *svr_dsn, char *svr_database, char *svr_schema, char *svr_
     }
     if (dbc)
     {
+        SQLDisconnect(dbc);
         SQLFreeHandle(SQL_HANDLE_DBC, dbc);
         dbc = NULL;
     }
@@ -585,8 +587,6 @@ odbcGetTableSize(char *svr_dsn, char *svr_database, char *svr_schema, char *svr_
         SQLFreeHandle(SQL_HANDLE_ENV, env);
         env = NULL;
     }
-    if (dbc)
-        SQLDisconnect(dbc);
 #ifdef DEBUG
     elog(DEBUG4, "odbc_fdw::odbcGetTableSize: Count: %u", *size);
 #endif
@@ -1004,6 +1004,7 @@ odbcBeginForeignScan(ForeignScanState *node, int eflags)
     festate->svr_table = svr_table;
     festate->svr_username = username;
     festate->svr_password = password;
+    festate->dbc = dbc;
     festate->stmt = stmt;
     festate->table_columns = columns;
     festate->num_of_table_cols = num_of_columns;
@@ -1238,6 +1239,11 @@ odbcEndForeignScan(ForeignScanState *node)
 
     if (festate)
     {
+        if (festate->dbc)
+        {
+            SQLDisconnect(festate->dbc);
+            SQLFreeHandle(SQL_HANDLE_DBC, festate->dbc);
+        }
         if (festate->stmt)
         {
             SQLFreeHandle(SQL_HANDLE_STMT, festate->stmt);
