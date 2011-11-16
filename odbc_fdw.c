@@ -496,9 +496,9 @@ odbcGetTableSize(char *svr_dsn, char *svr_database, char *svr_schema, char *svr_
 
     /* Construct connection string */
     initStringInfo(&conn_str);
-	if (svr_database != NULL)
+    if (svr_database != NULL)
         appendStringInfo(&conn_str, "DSN=%s;DATABASE=%s;UID=%s;PWD=%s;", svr_dsn, svr_database, username, password);
-	else
+    else
         appendStringInfo(&conn_str, "DSN=%s;UID=%s;PWD=%s;", svr_dsn, username, password);
 #ifdef DEBUG
     elog(DEBUG4, "odbc_fdw::odbcGetTableSize: Connection string: %s", conn_str.data);
@@ -816,9 +816,9 @@ odbcBeginForeignScan(ForeignScanState *node, int eflags)
     elog(DEBUG4, "odbc_fdw::odbcBeginForeignScan: password: %s", password);
 #endif
     initStringInfo(&conn_str);
-	if (svr_database != NULL)
+    if (svr_database != NULL)
         appendStringInfo(&conn_str, "DSN=%s;DATABASE=%s;UID=%s;PWD=%s;", svr_dsn, svr_database, username, password);
-	else
+    else
         appendStringInfo(&conn_str, "DSN=%s;UID=%s;PWD=%s;", svr_dsn, username, password);
 
 #ifdef DEBUG
@@ -960,10 +960,10 @@ odbcBeginForeignScan(ForeignScanState *node, int eflags)
     initStringInfo(&sql);
     if (pushdown)
     {
-		if (svr_database != NULL)
+        if (svr_schema != NULL)
             appendStringInfo(&sql, "SELECT %s FROM `%s`.`%s` WHERE `%s` = '%s'",
-                             col_str.data, svr_database, svr_table, qual_key, qual_value);
-		else
+                             col_str.data, svr_schema, svr_table, qual_key, qual_value);
+        else
             appendStringInfo(&sql, "SELECT %s FROM `%s` WHERE `%s` = '%s'",
                              col_str.data, svr_table, qual_key, qual_value);
     }
