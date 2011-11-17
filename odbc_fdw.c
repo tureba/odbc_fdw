@@ -516,7 +516,7 @@ odbcGetTableSize(char *svr_dsn, char *svr_database, char *svr_schema, char *svr_
                            OutConnStr, 1024, &OutConnStrLen, SQL_DRIVER_COMPLETE);
 
     if (!SQL_SUCCEEDED(ret))
-	{
+    {
         extract_error("SQLDriverConnect", dbc, SQL_HANDLE_DBC);
         elog(ERROR, "odbc_fdw::odbcGetTableSize: Could not connect to driver");
     }
@@ -853,13 +853,13 @@ odbcBeginForeignScan(ForeignScanState *node, int eflags)
     if (!SQL_SUCCEEDED(ret)) {
         extract_error("SQLDriverConnect", dbc, SQL_HANDLE_DBC);
         elog(ERROR, "odbc_fdw::odbcBeginForeignScan: Could not connect to the driver");
-	}
-	else
-	{
+    }
+    else
+    {
 #ifdef DEBUG
         elog(DEBUG4, "odbc_fdw::odbcBeginForeignScan: Successfully connected to driver");
 #endif
-	}
+    }
 
     /* Getting the Quote char */
     SQLGetInfo(dbc,
@@ -1148,7 +1148,7 @@ odbcIterateForeignScan(ForeignScanState *node)
 
 #ifdef DEBUG
             /* Dump the content of the mask */
-			int p;
+            int p;
             elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: Mask index: %i", mask_index);
             elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: Content of the mask:");
             for (p=0; p<num_of_result_cols; p++)
