@@ -1136,6 +1136,13 @@ odbcIterateForeignScan(ForeignScanState *node)
     {
         SQLSMALLINT i;
         values = (char **) palloc(sizeof(char *) * columns);
+#ifdef DEBUG
+        /* Dump the content of the mask once per iteration */
+        int p;
+        elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: Content of the mask:");
+        for (p=0; p<num_of_result_cols; p++)
+            elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: %i => %i (%i)", p, list_nth_int(col_position_mask, p), list_nth_int(col_size_array, p));
+#endif
         /* Loop through the columns */
         for (i = 1; i <= columns; i++)
         {
@@ -1147,14 +1154,7 @@ odbcIterateForeignScan(ForeignScanState *node)
             int mapped_pos = list_nth_int(col_position_mask, mask_index);
 
 #ifdef DEBUG
-            /* Dump the content of the mask */
-            int p;
             elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: Mask index: %i", mask_index);
-            elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: Content of the mask:");
-            for (p=0; p<num_of_result_cols; p++)
-            {
-                elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: %i => %i (%i)", p, list_nth_int(col_position_mask, p), list_nth_int(col_size_array, p));
-            }
 #endif
             /* Ignore this column if position is marked as invalid */
             if (mapped_pos == -1)
@@ -1166,14 +1166,22 @@ odbcIterateForeignScan(ForeignScanState *node)
             ret = SQLGetData(stmt, i, SQL_C_CHAR,
                              buf, sizeof(char) * col_size, &indicator);
 
-            if (SQL_SUCCEEDED(ret))
+            if (!SQL_SUCCEEDED(ret))
+                ereport(ERROR, (errcode(ERRCODE_FDW_INVALID_USE_OF_NULL_POINTER),
+                                errmsg("Could not retrieve data from the ODBC Driver")
+                               ));
+            else
             {
                 /* Handle null columns */
-                if (indicator == SQL_NULL_DATA) strcpy(buf, "NULL");
-                initStringInfo(&col_data);
-                appendStringInfoString (&col_data, buf);
+                if (indicator == SQL_NULL_DATA)
+                    values[mapped_pos] = NULL;
+                else
+                {
+                    initStringInfo(&col_data);
+                    appendStringInfoString (&col_data, buf);
 
-                values[mapped_pos] = col_data.data;
+                    values[mapped_pos] = col_data.data;
+                }
 #ifdef DEBUG
                 elog(DEBUG4, "odbc_fdw::odbcIterateForeignScan: values[%i] = %s", mapped_pos, values[mapped_pos]);
 #endif
